@@ -12,15 +12,19 @@ jobs:
         with: { distribution: temurin, java-version: 25 }
       - uses: gradle/actions/setup-gradle@v4
         with: { gradle-version: current }
-      - run: gradle build
+      - run: gradle build --no-daemon
         working-directory: Resonance-26.3
-      - name: Show built files
-        run: find . -name "*.jar" -not -path "*/.gradle/*" -not -path "*/gradle-*" | head -20
       - name: Collect jar
         run: |
-          mkdir out
-          cp $(find Resonance-26.3/build/libs -name "*.jar" -not -name "*-sources*" -not -name "*-dev*" | head -1) out/Resonance-1.1.0-mc26.3.jar
-          ls -la out
+          echo "--- all jars in the project:"
+          find "$GITHUB_WORKSPACE" -name "*.jar" -not -path "*/.gradle/*" -not -path "*/gradle-*" -not -path "*/.git/*"
+          echo "--- build folder:"
+          ls -R Resonance-26.3/build | head -60
+          mkdir -p out
+          JAR=$(find "$GITHUB_WORKSPACE/Resonance-26.3" -name "*.jar" -not -path "*/.gradle/*" -not -name "*-sources*" -not -name "*-dev*" | head -1)
+          echo "chosen: $JAR"
+          test -n "$JAR"
+          cp "$JAR" out/Resonance-1.1.0-mc26.3.jar
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: v1.1.0-jar${{ github.run_number }}
